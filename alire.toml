@@ -1,0 +1,11 @@
+name = "lab1a"
+description = "''"
+version = "0.1.0-dev"
+
+authors = ["Ines Valcarcel"]
+maintainers = ["Ines Valcarcel <inesvalcarcel03@gmail.com>"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+executables = ["lab1a", "producerconsumer_prot"]
