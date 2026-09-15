@@ -5,9 +5,9 @@ project Lab1a is
    for Object_Dir use "obj/" & Lab1a_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("lab1a.adb", "producerconsumer_prot.adb");
-   --  Add "producerconsumer_rndzvs.adb" and "producerconsumer_sem.adb"
-   --  here once those tasks are implemented.
+   for Main use ("lab1a.adb", "producerconsumer_prot.adb",
+      "producerconsumer_rndzvs.adb", "producerconsumer_sem.adb");
+
 
    package Compiler is
       for Default_Switches ("Ada") use Lab1a_Config.Ada_Compiler_Switches;

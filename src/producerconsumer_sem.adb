@@ -10,28 +10,32 @@ with Semaphores;
 use Semaphores;
 
 procedure ProducerConsumer_Sem is
-	
-	N : constant Integer := 10; -- Number of produced and consumed tokens per task
-	X : constant Integer := 3; -- Number of producers and consumer
-		
-	-- Buffer Definition
-	Size: constant Integer := 4;
-	type Index is mod Size;
-	type Item_Array is array(Index) of Integer;
-	B : Item_Array;
-	In_Ptr, Out_Ptr, Count : Index := 0;
+
+   N : constant Integer := 10; -- Number of produced and consumed tokens per task
+   X : constant Integer := 3;  -- Number of producers and consumers
+
+   -- Buffer Definition
+   Size : constant Integer := 4;
+   type Index is mod Size;
+   type Item_Array is array (Index) of Integer;
+   B : Item_Array;
+   In_Ptr, Out_Ptr : Index := 0;
+   Count : Integer range 0 .. Size := 0;
 
    -- Random Delays
-   subtype Delay_Interval is Integer range 50..250;
+   subtype Delay_Interval is Integer range 50 .. 250;
    package Random_Delay is new Ada.Numerics.Discrete_Random (Delay_Interval);
    use Random_Delay;
    G : Generator;
-	
-   -- => Complete code: Declation of Semaphores
-	--    1. Semaphore 'NotFull' to indicate that buffer is not full
-	--    2. Semaphore 'NotEmpty' to indicate that buffer is not empty
-	--    3. Semaphore 'AtomicAccess' to ensure an atomic access to the buffer
-	
+
+   -- => Complete code: Declaration of Semaphores
+   --    1. Semaphore 'NotFull' to indicate that buffer is not full
+   --    2. Semaphore 'NotEmpty' to indicate that buffer is not empty
+   --    3. Semaphore 'AtomicAccess' to ensure an atomic access to the buffer
+   NotFull      : CountingSemaphore (Size,Size);
+   NotEmpty     : CountingSemaphore (Size,0);
+   AtomicAccess : CountingSemaphore (1,1);
+
    task type Producer;
 
    task type Consumer;
@@ -40,33 +44,60 @@ procedure ProducerConsumer_Sem is
       Next : Time;
    begin
       Next := Clock;
-      for I in 1..N loop
+      for I in 1 .. N loop
          -- => Complete Code: Write to Buffer
-			
-         -- Next 'Release' in 50..250ms
-         Next := Next + Milliseconds(Random(G));
-         --delay until Next;
-      end loop;
-   end;
+         NotFull.Wait;        -- block while the buffer is full
+         AtomicAccess.Wait;   -- enter critical section
 
-   task body Consumer is
-      Next : Time;
-   begin
-      Next := Clock;
-      for I in 1..N loop
-         -- => Complete Code: Read from Buffer
-			
-			-- Next 'Release' in 50..250ms
-         Next := Next + Milliseconds(Random(G));
+         B (In_Ptr) := I;
+         In_Ptr := In_Ptr + 1;
+         Count := Count + 1;
+         Put_Line ("Produced: " & Integer'Image (I));
+         if Count = Size then
+            Put_Line ("Buffer is now full");
+         end if;
+
+         AtomicAccess.Signal; -- leave critical section
+         NotEmpty.Signal;     -- one more item available
+
+         -- Next 'Release' in 50..250ms
+         Next := Next + Milliseconds (Random (G));
          delay until Next;
       end loop;
-   end;
-	
-	P: array (Integer range 1..X) of Producer;
-	C: array (Integer range 1..X) of Consumer;
-	
+   end Producer;
+
+   task body Consumer is
+      Next  : Time;
+      Value : Integer;
+   begin
+      Next := Clock;
+      for I in 1 .. N loop
+         -- => Complete Code: Read from Buffer
+         NotEmpty.Wait;       -- block while the buffer is empty
+         AtomicAccess.Wait;   -- enter critical section
+
+         Value := B (Out_Ptr);
+         Out_Ptr := Out_Ptr + 1;
+         Count := Count - 1;
+         Put_Line ("Consumed: " & Integer'Image (Value));
+         if Count = 0 then
+            Put_Line ("Buffer is now empty");
+         end if;
+
+         AtomicAccess.Signal; -- leave critical section
+         NotFull.Signal;      -- one more free slot
+
+
+
+         -- Next 'Release' in 50..250ms
+         Next := Next + Milliseconds (Random (G));
+         delay until Next;
+      end loop;
+   end Consumer;
+
+   P : array (Integer range 1 .. X) of Producer;
+   C : array (Integer range 1 .. X) of Consumer;
+
 begin -- main task
    null;
 end ProducerConsumer_Sem;
-
-

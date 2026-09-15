@@ -5,6 +5,7 @@ with Ada.Real_Time;
 use Ada.Real_Time;
 
 with Buffer; use Buffer;
+--with Semaphores; use Semaphores;
 
 with Ada.Numerics.Discrete_Random;
 
@@ -19,6 +20,7 @@ procedure ProducerConsumer_Prot is
    use Random_Delay;
    G : Generator;
    Buf: CircularBuffer;
+   --Sem: CountingSemaphore(1,1);
 
    -- ==> Complete code: Use Buffer
    task type Producer;
@@ -32,7 +34,12 @@ procedure ProducerConsumer_Prot is
       for I in 1..N loop
 
          -- ==> Complete code: Write to Buffer
+         --Sem.Wait;
          Buf.Put(I);
+         --Sem.Signal;
+         
+         Put_Line("Produced: " & Integer'Image(I));
+
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
          delay until Next;
@@ -48,9 +55,11 @@ procedure ProducerConsumer_Prot is
          -- Read from X
 			
          -- ==> Complete code: Read from Buffer
+        --Sem.Wait;
          Buf.Get(X);
+         --Sem.Signal;
 			
-         Put_Line(Integer'Image(X));
+         Put_Line("Consumed: " & Integer'Image(X));
          Next := Next + Milliseconds(Random(G));
          delay until Next;
       end loop;

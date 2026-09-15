@@ -8,4 +8,4 @@ licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
 website = ""
 tags = []
 
-executables = ["lab1a", "producerconsumer_prot"]
+executables = ["lab1a", "producerconsumer_prot", "producerconsumer_rndzvs", "producerconsumer_sem"]

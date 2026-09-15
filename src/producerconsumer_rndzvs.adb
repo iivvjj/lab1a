@@ -31,18 +31,43 @@ procedure ProducerConsumer_Rndzvs is
          type Index is mod Size;
          type Item_Array is array(Index) of Integer;
          B : Item_Array;
-         In_Ptr, Out_Ptr, Count : Index := 0;
+         In_Ptr, Out_Ptr : Index := 0;
+         Count : Integer range 0..Size := 0;
    begin
       loop
          select
 				-- => Complete Code: Service Append
+            when Count < Size =>
+               accept Append(I : in Integer) do
+                  B(In_Ptr) := I;
+                  In_Ptr := In_Ptr + 1;
+                  Count := Count + 1;
+                  Put_Line("Inserted: " & Integer'Image(I));
+                  if Count = Size then
+                     Put_Line("Buffer is now full");
+                  end if;
+               end Append;
          or
 				-- => Complete Code: Service Take
+            when Count > 0 =>
+               accept Take(I : out Integer) do
+                  I := B(Out_Ptr);
+                  Out_Ptr := Out_Ptr + 1;
+                  Put_Line("Removed: " & Integer'Image(I));
+                  Count := Count - 1;
+                  if Count = 0 then
+                     Put_Line("Buffer is now empty");
+                  end if;
+               end Take;
+
          or
 				-- => Termination
+            terminate;
          end select;
       end loop;
    end Buffer;
+
+   --  Buf: Buffer;
       
    task body Producer is
       Next : Time;
@@ -51,6 +76,8 @@ procedure ProducerConsumer_Rndzvs is
       for I in 1..N loop
 			
          -- => Complete code: Write to X
+         Buffer.Append(I);
+         --Put_Line("Produced: " & Integer'Image(I));
 
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
@@ -65,8 +92,8 @@ procedure ProducerConsumer_Rndzvs is
       Next := Clock;
       for I in 1..N loop
          -- Complete Code: Read from X
-
-         Put_Line(Integer'Image(X));
+         Buffer.Take(X);
+         --Put_Line("Consumed: " & Integer'Image(X));
          Next := Next + Milliseconds(Random(G));
          delay until Next;
       end loop;
