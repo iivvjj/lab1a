@@ -2,7 +2,7 @@ name = "lab1a"
 description = "''"
 version = "0.1.0-dev"
 
-authors = ["Ines Valcarcel"]
+authors = ["Ines Valcarcel, celia Hernández"]
 maintainers = ["Ines Valcarcel <inesvalcarcel03@gmail.com>"]
 licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
 website = ""
